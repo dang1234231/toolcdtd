@@ -65,30 +65,56 @@ def recalculate_win_stats(recent_winners):
 
 # --- Giao diện chính ---
 st.set_page_config(page_title="Dự Đoán Không Phải Quán Quân", layout="centered")
-st.title("🏆 Tool Dự Đoán: Ai Không Phải Là Quán Quân")
+st.title("🏆 Tool Dự Đoán: Chơi Nhiều Ván Liên Tiếp")
 
-st.header("📝 Nhập 10 nhân vật thắng gần nhất:")
-recent_winners = []
-for i in range(10):
-    val = st.selectbox(f"Ván {i+1}", CHARACTERS, key=f"recent_{i}")
-    recent_winners.append(val)
+# Khởi tạo session state
+if "recent_winners" not in st.session_state:
+    st.session_state.recent_winners = []
+if "full_history" not in st.session_state:
+    st.session_state.full_history = []
+if "ready" not in st.session_state:
+    st.session_state.ready = False
 
-st.header("📊 Nhập số lần thắng trong 100 ván gần nhất:")
-stats_100 = {}
-for char in CHARACTERS:
-    stats_100[char] = st.number_input(f"{char}", min_value=0, max_value=100, step=1)
+if not st.session_state.ready:
+    st.header("📝 Nhập 10 nhân vật thắng gần nhất:")
+    recent_input = []
+    for i in range(10):
+        val = st.selectbox(f"Ván {i+1}", CHARACTERS, key=f"recent_{i}")
+        recent_input.append(val)
 
-total = sum(stats_100.values())
-if total != 100:
-    st.error(f"❌ Tổng số ván phải là 100! Hiện tại là {total}.")
+    st.header("📊 Nhập số lần thắng trong 100 ván gần nhất:")
+    stats_100 = {}
+    for char in CHARACTERS:
+        stats_100[char] = st.number_input(f"{char}", min_value=0, max_value=100, step=1)
+
+    total = sum(stats_100.values())
+    if total != 100:
+        st.error(f"❌ Tổng số ván phải là 100! Hiện tại là {total}.")
+    else:
+        full_history = []
+        for name in CHARACTERS:
+            full_history.extend([name] * stats_100[name])
+        st.session_state.recent_winners = recent_input
+        st.session_state.full_history = full_history
+        st.session_state.ready = True
+        st.success("✅ Đã lưu dữ liệu! Bạn có thể bắt đầu chơi tiếp.")
+        st.experimental_rerun()
 else:
-    full_history = []
-    for name in CHARACTERS:
-        full_history.extend([name] * stats_100[name])
-    win_stats = recalculate_win_stats(full_history)
-    possible, reasons = analyze_characters(recent_winners, win_stats)
+    st.header("➕ Nhập nhân vật vừa thắng (chơi tiếp):")
+    new_winner = st.selectbox("Chọn nhân vật vừa thắng", CHARACTERS)
+    if st.button("✅ Cập nhật và phân tích"):
+        # Cập nhật lịch sử 100 trận
+        removed = st.session_state.full_history.pop(0)
+        st.session_state.full_history.append(new_winner)
+        # Cập nhật lịch sử 10 trận gần đây
+        st.session_state.recent_winners.pop(0)
+        st.session_state.recent_winners.append(new_winner)
+        st.success(f"Đã thêm {new_winner} vào kết quả.")
 
-    st.success("✅ Nhân vật CÓ THỂ CHỌN (ít khả năng thắng):")
+    win_stats = recalculate_win_stats(st.session_state.full_history)
+    possible, reasons = analyze_characters(st.session_state.recent_winners, win_stats)
+
+    st.subheader("✅ Nhân vật CÓ THỂ CHỌN (ít khả năng thắng):")
     if possible:
         for char in possible:
             st.write(f" - {char}")
