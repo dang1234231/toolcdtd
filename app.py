@@ -98,7 +98,8 @@ if not st.session_state.ready:
         st.session_state.full_history = full_history
         st.session_state.ready = True
         st.success("✅ Đã lưu dữ liệu! Bạn có thể bắt đầu chơi tiếp.")
-        st.experimental_rerun()
+        st.rerun()
+
 else:
     st.header("➕ Nhập nhân vật vừa thắng (chơi tiếp):")
     new_winner = st.selectbox("Chọn nhân vật vừa thắng", CHARACTERS)
