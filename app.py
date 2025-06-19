@@ -65,7 +65,7 @@ def recalculate_win_stats(recent_winners):
 
 # --- Giao diện chính ---
 st.set_page_config(page_title="Dự Đoán Không Phải Quán Quân", layout="centered")
-st.title("🏆 Tool Dự Đoán: Chơi Nhiều Ván Liên Tiếp")
+st.title("🏆 Tool Dự Đoán: Ai Không Phải Quán Quân")
 
 # Khởi tạo session state
 if "recent_winners" not in st.session_state:
